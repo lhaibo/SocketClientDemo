@@ -1,0 +1,105 @@
+﻿using System;
+using System.Net.Sockets;
+using SocketDemoProtocol;
+using UnityEngine;
+
+namespace SocketDemo
+{
+    public class ClientManager:BaseManager
+    {
+        private Socket socket;
+        private Message message;
+        
+        public ClientManager(GameFace face) : base(face)
+        {
+            
+        }
+        /// <summary>
+        /// 初始化socket
+        /// </summary>
+        public override void OnInit()
+        {
+            if (face.Username==null)
+            {
+                base.OnInit();
+                message=new Message();
+                InitSocket();
+            }
+        }
+        /// <summary>
+        /// 关闭socket
+        /// </summary>
+        public override void OnDestroy()
+        {
+            base.OnDestroy();
+            message = null;
+            CloseSocket();
+        }
+
+        private void InitSocket()
+        {
+            socket=new Socket(AddressFamily.InterNetwork,SocketType.Stream,ProtocolType.Tcp);
+            try
+            {
+                socket.Connect("127.0.0.1",6666);
+                StartReceive();
+            }
+            catch (Exception e)
+            {
+                Debug.Log(e.Message);
+            }
+        }
+
+        private void CloseSocket()
+        {
+            if (socket.Connected&&socket!=null)
+            {
+                socket.Close();
+            }
+            
+        }
+
+        private void StartReceive()
+        {
+            socket.BeginReceive(message.Buffer, message.StartIndex, message.RemSize, SocketFlags.None, ReceiveCallBack,null);
+            Debug.Log("开始接收消息...");
+        }
+
+        private void ReceiveCallBack(IAsyncResult ar)
+        {
+            if (socket == null || socket.Connected == false)
+            {
+                Debug.Log("socket == null || socket.Connected == false");
+                return;
+            }
+            try
+            {
+                int len = socket.EndReceive(ar);
+                if (len==0)
+                {
+                    CloseSocket();
+                    return;
+                }
+                message.ReadBuffer(len,HandleResponse);
+                StartReceive();
+            }
+            catch (Exception e)
+            {
+                Debug.Log(e.Message);
+            }
+        }
+
+        private void HandleResponse(MainPack pack)
+        {
+            face.HandleResponse(pack);
+            Debug.Log("处理消息");
+
+        }
+
+        public void Send(MainPack pack)
+        {
+            socket.Send(Message.PackData(pack));
+            Debug.Log("消息已发送");
+        }
+    }
+}
