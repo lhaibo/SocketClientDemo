@@ -1,20 +1,21 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Request;
 using SocketDemo;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
     public Player player;
-    [SerializeField] private float speed=1.0f;
+    [SerializeField] private float speed=3.0f;
     public Transform bullet;
-    [SerializeField] private float shootDeltaTime = 0.5f;
+    [SerializeField] private float shootDeltaTime = 0.2f;
     private float timer = 0.0f;
     
     private void Awake()
     {
-        player=new Player(this.GetComponent<Transform>(),this.GetComponentInChildren<Transform>());
+        player=new Player(this.GetComponent<Transform>(),this.GetComponentInChildren<Transform>(),this.GetComponent<ShootRequest>());
         bullet = ((GameObject)Resources.Load("bullet")).transform;
         //Cursor.lockState = CursorLockMode.None;
         //Cursor.visible = false;

@@ -25,6 +25,8 @@ namespace Request
         public void SendRequest(string playerName)
         {
             MainPack pack=new MainPack();
+            pack.RequestCode = requestCode;
+            pack.ActionCode = actionCode;
             pack.ExitGameName = playerName;
             base.SendRequest(pack);
         }

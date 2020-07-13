@@ -6,6 +6,7 @@ using Request;
 using SocketDemo;
 using SocketDemoProtocol;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameFace : MonoBehaviour
 {
@@ -17,7 +18,7 @@ public class GameFace : MonoBehaviour
     
     public string  Username { get; set; }
     public MainPack allPlayer { get; set; }
-
+    public PanelType initPanelType=PanelType.Start;
     private void Awake()
     {
         instance = this;
@@ -27,6 +28,7 @@ public class GameFace : MonoBehaviour
         clientManager=new ClientManager(this);
         requestManager=new RequestManager(this);
         playerManager=new PlayerManager(this);
+        
         uiManager.OnInit();
         requestManager.OnInit();
         clientManager.OnInit();
@@ -86,8 +88,42 @@ public class GameFace : MonoBehaviour
         playerManager.RemovePlayer(id);
     }
 
+    public void SpawnBullet(MainPack pack)
+    {
+        playerManager.SpawnBullet(pack);
+    }
+    
     public void GameExit(MainPack pack)
     {
-        playerManager.RemovePlayer(pack.ExitGameName);
+        if (pack.Str=="房主退出")
+        {
+            playerManager.Clear();
+            GameFace.instance.initPanelType = PanelType.RoomList;
+            SceneManager.LoadScene("LoginAndLogon");
+        }
+        else
+        {
+            playerManager.RemovePlayer(pack.ExitGameName);
+        }
+    }
+    
+    
+    public void ShowInitPanel()
+    {
+        uiManager.ClearUI();
+        uiManager.Canvas = GameObject.Find("Canvas").GetComponent<Transform>();
+        uiManager.PushPanel(PanelType.Tips);
+        uiManager.PushPanel(initPanelType);
+    }
+
+    public void UpdatePos(MainPack pack)
+    {
+        playerManager.UpdatePos(pack);
+    }
+
+    public void SendTo(MainPack pack)
+    {
+        pack.Username = Username;
+        clientManager.SendTo(pack);
     }
 }

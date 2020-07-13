@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
+using DefaultNamespace;
 using Google.Protobuf.Collections;
+using Request;
 using SocketDemoProtocol;
 using UnityEngine;
 
@@ -14,13 +16,13 @@ namespace SocketDemo
         Dictionary<string,GameObject> players=new Dictionary<string, GameObject>();
 
         private GameObject character;
+        private GameObject bullet;
         private Transform spawnPos;
         public override void OnInit()
         {
-            character=Resources.Load("Character/player") as GameObject;
             base.OnInit();
-            
-            
+            character=Resources.Load("Character/player") as GameObject;
+            bullet=Resources.Load("bullet") as GameObject;
         }
 
         public string CurPlayerID
@@ -38,10 +40,16 @@ namespace SocketDemo
                 if (player.PlayerName.Equals(face.Username))
                 {
                     //添加本地角色使用的脚本
+                    gameObject.AddComponent<UpdatePosRequest>();
+                    gameObject.AddComponent<ShootRequest>();
+                    
+                    gameObject.AddComponent<UpdatePosition>();
+                    
                     gameObject.AddComponent<PlayerController>();
                 }
                 else
                 {
+                    gameObject.AddComponent<RemotePlayer>();
                     //添加其他客户端角色使用的脚本
                 }
                 players.Add(player.PlayerName,gameObject);
@@ -61,5 +69,29 @@ namespace SocketDemo
                 Debug.Log("移除角色出错");
             }
         }
+
+        public void UpdatePos(MainPack pack)
+        {
+            PostionPack postionPack = pack.PlayerPack[0].PostionPack;
+            if (players.TryGetValue(pack.PlayerPack[0].PlayerName,out GameObject gameObject))
+            {
+                Vector3 pos=new Vector3(postionPack.X,postionPack.Y,0);
+                float rotZ = postionPack.RotZ;
+
+                gameObject.GetComponent<RemotePlayer>().SetState(pos, rotZ);
+            }
+        }
+
+        public void Clear()
+        {
+            players.Clear();
+        }
+
+        public void SpawnBullet(MainPack pack)
+        {
+            Vector3 pos=new Vector3(pack.BulletPack.X,pack.BulletPack.Y,0);
+            GameObject.Instantiate(bullet, pos, Quaternion.Euler(0, 0, pack.BulletPack.RotZ));
+        }
+        
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Net.Mime;
 using Request;
@@ -37,12 +38,35 @@ namespace SocketDemo
 
         private void OnExitBtnClick()
         {
+            GameFace.instance.initPanelType = PanelType.RoomList;
             SceneManager.LoadScene("LoginAndLogon");
-            uiManager.PushPanel(PanelType.RoomList);
+            //uiManager.PushPanel(PanelType.RoomList);
+            //采用异步加载
+            //StartCoroutine("ReturnRoom");
+            
             //发送给服务端
             gameExitRequest.SendRequest(GameFace.instance.Username);
             
         }
+
+        // private IEnumerator ReturnRoom()
+        // {
+        //     AsyncOperation async = SceneManager.LoadSceneAsync("LoginAndLogon");
+        //     async.allowSceneActivation = false;
+        //     while (!async.isDone)
+        //     {
+        //         if (async.progress<0.9f)
+        //         {
+        //             Debug.Log("正在加载。。。");
+        //         }
+        //         else
+        //         {
+        //             async.allowSceneActivation = true;
+        //             break;
+        //         }
+        //         yield return null;
+        //     }
+        // }
         
         public override void OnEnter()
         {

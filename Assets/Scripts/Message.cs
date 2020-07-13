@@ -31,13 +31,14 @@ namespace SocketDemo
         public void ReadBuffer(int len,Action<MainPack> HandleResponse)
         {
             startIndex += len;
-            if (startIndex <= 4)
-            {
-                return;
-            }
-            int count = BitConverter.ToInt32(buffer, 0);
+            
             while (true)
             {
+                if (startIndex <= 4)
+                {
+                    return;
+                }
+                int count = BitConverter.ToInt32(buffer, 0);
                 if (startIndex>=(count+4))
                 {
                     MainPack pack = (MainPack)MainPack.Descriptor.Parser.ParseFrom(buffer, 4, count);
@@ -58,6 +59,11 @@ namespace SocketDemo
             byte[] data = pack.ToByteArray();
             byte[] head = BitConverter.GetBytes(data.Length);
             return head.Concat(data).ToArray();
+        }
+        
+        public static byte[] PackDataUDP(MainPack pack)
+        {
+            return pack.ToByteArray();
         }
     }
 }

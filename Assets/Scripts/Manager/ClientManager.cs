@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using SocketDemoProtocol;
 using UnityEngine;
 
@@ -9,7 +11,7 @@ namespace SocketDemo
     {
         private Socket socket;
         private Message message;
-        
+        private string ip = "127.0.0.1";
         public ClientManager(GameFace face) : base(face)
         {
             
@@ -24,6 +26,7 @@ namespace SocketDemo
                 base.OnInit();
                 message=new Message();
                 InitSocket();
+                InitUDP();
             }
         }
         /// <summary>
@@ -41,7 +44,7 @@ namespace SocketDemo
             socket=new Socket(AddressFamily.InterNetwork,SocketType.Stream,ProtocolType.Tcp);
             try
             {
-                socket.Connect("127.0.0.1",6666);
+                socket.Connect(ip,6666);
                 StartReceive();
             }
             catch (Exception e)
@@ -101,5 +104,62 @@ namespace SocketDemo
             socket.Send(Message.PackData(pack));
             Debug.Log("消息已发送");
         }
+
+        
+        
+        //udp
+        
+        private Socket udpClient;
+        private IPEndPoint ipEndPoint;
+        private EndPoint endPoint;
+        private Byte[] buffer=new byte[1024];
+        private Thread receiveMsgThread;
+        
+        private void InitUDP()
+        {
+            udpClient=new Socket(AddressFamily.InterNetwork,SocketType.Dgram,ProtocolType.Udp);
+            ipEndPoint=new IPEndPoint(IPAddress.Parse(ip),6667);
+            endPoint = (EndPoint) ipEndPoint;
+            try
+            {
+                udpClient.Connect(endPoint);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("udp连接失败!"+e.Message);
+                throw;
+            }
+            
+            //receiveMsgThread=new Thread(ReceiveMsg);
+            //receiveMsgThread.Start();
+            Loom.RunAsync(() =>
+            {
+                receiveMsgThread=new Thread(ReceiveMsg);
+                receiveMsgThread.Start();
+            });
+        }
+
+        private void ReceiveMsg()
+        {
+            Debug.Log("udp开始接收");
+            while (true)
+            {
+                int len = udpClient.ReceiveFrom(buffer, ref endPoint);
+                MainPack pack = (MainPack)MainPack.Descriptor.Parser.ParseFrom(buffer, 0, len);
+                
+                Loom.QueueOnMainThread((param) =>
+                {
+                    HandleResponse(pack);
+                },null);
+                //HandleResponse(pack);
+            }
+        }
+
+        public void SendTo(MainPack pack)
+        {
+            Byte[] sendBuff = Message.PackDataUDP(pack);
+            udpClient.Send(sendBuff, sendBuff.Length, SocketFlags.None);
+        }
+
     }
 }

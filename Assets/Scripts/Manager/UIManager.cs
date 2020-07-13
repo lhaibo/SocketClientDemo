@@ -8,7 +8,7 @@ namespace SocketDemo
         private Dictionary<PanelType,BasePanel> panelDict=new Dictionary<PanelType, BasePanel>();
         private Dictionary<PanelType,string> panelPathDict=new Dictionary<PanelType, string>();
         private Stack<BasePanel> panelStack=new Stack<BasePanel>();
-        private Transform canvas;
+        public Transform Canvas { get;set; }
 
         private TipsPanel tipsPanel;
         
@@ -20,8 +20,8 @@ namespace SocketDemo
         {
             base.OnInit();
             InitPanel();
-            PushPanel(PanelType.Start);
-            PushPanel(PanelType.Tips);
+            // PushPanel(PanelType.Start);
+            // PushPanel(PanelType.Tips);
         }
         /// <summary>
         /// 关闭当前ui
@@ -78,7 +78,7 @@ namespace SocketDemo
         {
             if (panelPathDict.TryGetValue(panelType,out string path))
             {
-                GameObject gameObject = GameObject.Instantiate(Resources.Load(path), canvas) as GameObject;
+                GameObject gameObject = GameObject.Instantiate(Resources.Load(path), Canvas) as GameObject;
                 
                 panelDict.Add(panelType,gameObject.GetComponent<BasePanel>());
                 panelDict[panelType].UiManager = this;
@@ -104,7 +104,7 @@ namespace SocketDemo
             panelPathDict.Add(PanelType.RoomList,panelPath+path[4]);
             panelPathDict.Add(PanelType.Room,panelPath+path[5]);
             panelPathDict.Add(PanelType.Game,panelPath+path[6]);
-            canvas=GameObject.Find("Canvas").transform;
+            //Canvas=GameObject.Find("Canvas").transform;
         }
 
         public void SetTipsPanel(TipsPanel tipsPanel)
@@ -116,6 +116,14 @@ namespace SocketDemo
         {
             if(tipsPanel.gameObject.activeSelf==false)tipsPanel.gameObject.SetActive(true);
             tipsPanel.ShowTips(str);
+        }
+
+        public void ClearUI()
+        {
+            panelDict.Clear();
+            panelStack.Clear();
+            tipsPanel = null;
+            Canvas = null;
         }
     }
 }

@@ -35,5 +35,10 @@ namespace Request
         {
             GameFace.instance.Send(pack);
         }
+
+        protected void SendRequestUDP(MainPack pack)
+        {
+            GameFace.instance.SendTo(pack);
+        }
     }
 }
